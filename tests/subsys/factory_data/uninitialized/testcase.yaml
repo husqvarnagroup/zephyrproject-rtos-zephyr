@@ -1,0 +1,14 @@
+common:
+  tags: factory_data
+  platform_allow:
+    - native_sim
+    - native_sim/native/64
+    - nrf52840dk/nrf52840
+tests:
+  factory_data_uninitialized.fcb:
+    extra_args: OVERLAY_CONFIG=fcb.conf
+  factory_data_uninitialized.lv:
+    extra_args: CONFIG_FACTORY_DATA_LV=y
+  factory_data_uninitialized.dummy:
+    extra_args: CONFIG_FACTORY_DATA_DUMMY=y
+    build_only: true
