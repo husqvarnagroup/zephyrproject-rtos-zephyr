@@ -306,6 +306,8 @@ ZTESTABLE_STATIC int build_msg_block_for_send(struct lwm2m_message *msg, uint16_
 	} else {
 		/* Keep user data between blocks */
 		void *user_data = msg->reply ? msg->reply->user_data : NULL;
+		/* Create a backup before lwm2m_init_message() overwrites */
+		lwm2m_send_cb_t send_status_cb = msg->send_status_cb;
 
 		/* reuse message for next block. Copy token from the new query to allow
 		 * CoAP clients to use new token for every query of ongoing transaction
@@ -326,6 +328,12 @@ ZTESTABLE_STATIC int build_msg_block_for_send(struct lwm2m_message *msg, uint16_
 			LOG_ERR("Unable to init lwm2m message for next block!");
 			return ret;
 		}
+
+		if (send_status_cb) {
+			msg->reply->user_data = msg;
+			msg->send_status_cb = send_status_cb;
+		}
+
 		if (msg->reply) {
 			msg->reply->user_data = user_data;
 		}
