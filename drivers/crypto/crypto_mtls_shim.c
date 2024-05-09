@@ -93,6 +93,11 @@ int mtls_ecb_encrypt(struct cipher_ctx *ctx, struct cipher_pkt *pkt)
 		return -EINVAL;
 	}
 
+	if (pkt->in_len < 16) {
+		LOG_ERR("Cannot encrypt partial blocks");
+		return -EINVAL;
+	}
+
 	if (ctx->flags & CAP_INPLACE_OPS) {
 		out_buf = pkt->in_buf;
 	} else {
@@ -125,6 +130,11 @@ int mtls_ecb_decrypt(struct cipher_ctx *ctx, struct cipher_pkt *pkt)
 		return -EINVAL;
 	}
 
+	if (pkt->in_len < 16) {
+		LOG_ERR("Cannot decrypt partial blocks");
+		return -EINVAL;
+	}
+
 	if (ctx->flags & CAP_INPLACE_OPS) {
 		out_buf = pkt->in_buf;
 	} else {
@@ -149,6 +159,11 @@ int mtls_cbc_encrypt(struct cipher_ctx *ctx, struct cipher_pkt *pkt, uint8_t *iv
 	uint8_t *p_iv, iv_loc[16];
 	mbedtls_aes_context *cbc_ctx = MTLS_GET_CTX(ctx, aes);
 	uint8_t *out_buf;
+
+	if (pkt->in_len % 16) {
+		LOG_ERR("Cannot encrypt partial blocks");
+		return -EINVAL;
+	}
 
 	if ((ctx->flags & CAP_NO_IV_PREFIX) == 0U) {
 		/* Prefix IV to ciphertext, which is default behavior of Zephyr
@@ -187,6 +202,11 @@ int mtls_cbc_decrypt(struct cipher_ctx *ctx, struct cipher_pkt *pkt, uint8_t *iv
 	uint8_t *p_iv, iv_loc[16];
 	mbedtls_aes_context *cbc_ctx = MTLS_GET_CTX(ctx, aes);
 	uint8_t *out_buf;
+
+	if (pkt->in_len % 16) {
+		LOG_ERR("Cannot decrypt partial blocks");
+		return -EINVAL;
+	}
 
 	if ((ctx->flags & CAP_NO_IV_PREFIX) == 0U) {
 		iv_bytes = 16;
