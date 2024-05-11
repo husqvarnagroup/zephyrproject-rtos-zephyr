@@ -12,6 +12,7 @@ toolchain:
   - gnuarmemb
   - zephyr
 supported:
+  - crypto
   - dma
   - flash
   - gpio
