@@ -1,0 +1,6 @@
+config HWINFO_SI32
+	bool "Si32 hwinfo"
+	default y
+	depends on SOC_FAMILY_SILABS_SIM3
+	help
+	  Enable Si32 hwinfo driver.
