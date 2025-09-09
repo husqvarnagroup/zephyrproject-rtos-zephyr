@@ -50,7 +50,11 @@ int main(void)
 	}
 
 	printk("\nLoad all factory data entries\n");
-	factory_data_load(load_callback, &fd);
+	ret = factory_data_load(load_callback, &fd);
+	if (ret) {
+		printk("Failed to load factory data: %d\n", ret);
+		return ret;
+	}
 
 	printk("\nPrint all factory data entries\n");
 
