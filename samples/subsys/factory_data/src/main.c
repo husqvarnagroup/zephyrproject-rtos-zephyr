@@ -45,7 +45,7 @@ int main(void)
 
 	ret = factory_data_init();
 	if (ret) {
-		printk("Failed to initialize factory data: %d", ret);
+		printk("Failed to initialize factory data: %d\n", ret);
 		return ret;
 	}
 
