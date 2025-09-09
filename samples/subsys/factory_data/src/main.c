@@ -74,7 +74,7 @@ int main(void)
 		}
 	}
 
-	printk("\nAbove values are booring? Use the factory data shell to manipulate them!\n");
+	printk("\nAbove values are boring? Use the factory data shell to manipulate them!\n");
 
 	return 0;
 }
