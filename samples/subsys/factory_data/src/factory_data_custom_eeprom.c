@@ -10,6 +10,7 @@
 
 #include <zephyr/drivers/eeprom.h>
 #include <zephyr/factory_data/factory_data.h>
+#include <zephyr/sys/printk.h>
 
 #define sample_factory_data_magic 0xfac70123
 
@@ -89,7 +90,12 @@ int factory_data_init(void)
 
 	/* Check version if partition was initialized before, initialize (write header) otherwise */
 	if (magic != sample_factory_data_magic) {
-		return factory_data_init_partition();
+		ret = factory_data_init_partition();
+		if (ret) {
+			printk("Failed to initialize factory data partition: %d\n", ret);
+			return ret;
+		}
+		goto out_success;
 	}
 
 	ret = eeprom_read(eeprom_dev, sizeof(magic), &version, sizeof(version));
@@ -100,6 +106,7 @@ int factory_data_init(void)
 		return -EIO;
 	}
 
+out_success:
 	factory_data_subsys_initialized = true;
 
 	return 0;
