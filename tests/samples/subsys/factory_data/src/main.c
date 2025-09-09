@@ -5,10 +5,9 @@
  */
 
 #include <zephyr/drivers/eeprom.h>
-
-#include <factory_data/factory_data.h>
-#include <ztest.h>
-#include <ztest_error_hook.h>
+#include <zephyr/factory_data/factory_data.h>
+#include <zephyr/ztest.h>
+#include <zephyr/ztest_error_hook.h>
 
 static int test_factory_data_pre_init_errors_data_load_dummy(const char *name, const uint8_t *value,
 							     size_t len, const void *param)
@@ -16,11 +15,12 @@ static int test_factory_data_pre_init_errors_data_load_dummy(const char *name, c
 	return -ENOSYS;
 };
 
-static void test_factory_data_pre_init_errors(void)
+static void *setup(void)
 {
 	const char *const value = "value";
 	uint8_t buf[16];
 
+	/* Abusing the setup function to do some pre-init testing */
 	zassert_equal(-ECANCELED, factory_data_save_one("uuid", value, strlen(value)),
 		      "Failing because not initialized");
 	zassert_equal(-ECANCELED,
@@ -28,18 +28,21 @@ static void test_factory_data_pre_init_errors(void)
 		      "Failing because not initialized");
 	zassert_equal(-ECANCELED, factory_data_load_one("uuid", buf, sizeof(buf)),
 		      "Failing because not initialized");
-
 	zassert_ok(factory_data_erase(), "Must work even when not initialized");
+
+	/* Doing the actual work */
+	zassert_ok(factory_data_init(), "Initialization must work");
+
+	return NULL;
 }
 
-static void test_factory_data_init(void)
+ZTEST(factory_data_custom, test_factory_data_init)
 {
-	zassert_ok(factory_data_init(), "First init must work");
 	zassert_ok(factory_data_init(), "2nd initialization must work too");
 	zassert_ok(factory_data_init(), "Actually, every initialization must work");
 }
 
-static void test_factory_data_erase(void)
+ZTEST(factory_data_custom, test_factory_data_erase)
 {
 	const uint8_t value_to_set[6] = {0x11, 0x22, 0x33, 0x44, 0x55, 0x66};
 	uint8_t value_read_back[6];
@@ -60,7 +63,7 @@ static void test_factory_data_erase(void)
 			  "All zero");
 }
 
-static void test_factory_data_save_one_name_invalid(void)
+ZTEST(factory_data_custom, test_factory_data_save_one_name_invalid)
 {
 	const char *const value_to_set = "value";
 	uint8_t value_read_back[strlen(value_to_set)];
@@ -77,7 +80,7 @@ static void test_factory_data_save_one_name_invalid(void)
 		      "Must not exist");
 }
 
-static void test_factory_data_save_one_value_empty(void)
+ZTEST(factory_data_custom, test_factory_data_save_one_value_empty)
 {
 	const char *const value_to_set = "";
 	uint8_t value_read_back[16];
@@ -90,7 +93,7 @@ static void test_factory_data_save_one_value_empty(void)
 		      "Must exist and be of size 16 - not testing value because undefined");
 }
 
-static void test_factory_data_save_one_value_regular(void)
+ZTEST(factory_data_custom, test_factory_data_save_one_value_regular)
 {
 	const uint8_t value_to_set[6] = {0x11, 0x22, 0x33, 0x44, 0x55, 0x66};
 	uint8_t value_read_back[sizeof(value_to_set)];
@@ -105,7 +108,7 @@ static void test_factory_data_save_one_value_regular(void)
 			  "Expecting proper restore");
 }
 
-static void test_factory_data_save_one_value_max_length(void)
+ZTEST(factory_data_custom, test_factory_data_save_one_value_max_length)
 {
 	char value_to_set[CONFIG_FACTORY_DATA_VALUE_LEN_MAX];
 	uint8_t value_read_back[CONFIG_FACTORY_DATA_VALUE_LEN_MAX + 10];
@@ -122,7 +125,7 @@ static void test_factory_data_save_one_value_max_length(void)
 			  "Expecting proper restore");
 }
 
-static void test_factory_data_save_one_value_oversize(void)
+ZTEST(factory_data_custom, test_factory_data_save_one_value_oversize)
 {
 	char value_to_set[CONFIG_FACTORY_DATA_VALUE_LEN_MAX + 1] = {};
 
@@ -160,7 +163,7 @@ static int test_factory_data_load_callback(const char *name, const uint8_t *valu
 	return 0;
 }
 
-static void test_factory_data_load(void)
+ZTEST(factory_data_custom, test_factory_data_load)
 {
 	struct test_factory_data_load_values_seen seen = {0};
 
@@ -170,17 +173,4 @@ static void test_factory_data_load(void)
 	zassert_true(seen.value_max_len, "'value_max_len' must be stored");
 }
 
-void test_main(void)
-{
-	ztest_test_suite(factory_data, ztest_unit_test(test_factory_data_pre_init_errors),
-			 ztest_unit_test(test_factory_data_init),
-			 ztest_unit_test(test_factory_data_erase),
-			 ztest_unit_test(test_factory_data_save_one_name_invalid),
-			 ztest_unit_test(test_factory_data_save_one_value_empty),
-			 ztest_unit_test(test_factory_data_save_one_value_regular),
-			 ztest_unit_test(test_factory_data_save_one_value_max_length),
-			 ztest_unit_test(test_factory_data_save_one_value_oversize),
-			 ztest_unit_test(test_factory_data_load));
-
-	ztest_run_test_suite(factory_data);
-}
+ZTEST_SUITE(factory_data_custom, NULL, setup, NULL, NULL, NULL);

@@ -34,7 +34,7 @@ static int load_callback(const char *name, const uint8_t *value, size_t len, con
 	return 0;
 }
 
-void main(void)
+int main(void)
 {
 	struct factory_data fd;
 	char uuid_hex_str[32 + 1];
@@ -46,7 +46,7 @@ void main(void)
 	ret = factory_data_init();
 	if (ret) {
 		printk("Failed to initialize factory data: %d", ret);
-		return;
+		return ret;
 	}
 
 	printk("\nLoad all factory data entries\n");
@@ -75,4 +75,6 @@ void main(void)
 	}
 
 	printk("\nAbove values are booring? Use the factory data shell to manipulate them!\n");
+
+	return 0;
 }
