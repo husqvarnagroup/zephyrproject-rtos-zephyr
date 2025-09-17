@@ -1,0 +1,71 @@
+# Copyright (c) 2025 GARDENA GmbH
+# SPDX-License-Identifier: Apache-2.0
+
+description: Silicon Labs Si4467 Sub-GHz transceiver
+
+compatible: "silabs,si4467"
+
+include: [spi-device.yaml]
+
+properties:
+    nirq-gpios:
+      type: phandle-array
+      required: true
+      description: |
+        Per default, the interrupt pin nIRQ of the Si4467 is active low input
+        on the MCU.
+
+    sdn-gpios:
+      type: phandle-array
+      required: true
+      description: |
+        The shutdown (SDN) pin of the Si4467 is active high.
+
+    gpio-0-gpios:
+      type: phandle-array
+      required: false
+      description: |
+        The MCU pin connected to the Si4467 GPIO 0
+
+    gpio-1-gpios:
+      type: phandle-array
+      required: false
+      description: |
+        The MCU pin connected to the Si4467 GPIO 1
+
+    gpio-2-gpios:
+      type: phandle-array
+      required: false
+      description: |
+        The MCU pin connected to the Si4467 GPIO 1
+
+    gpio-3-gpios:
+      type: phandle-array
+      required: false
+      description: |
+        The MCU pin connected to the Si4467 GPIO 3
+
+    xtal-frequency:
+      type: int
+      required: true
+      description: |
+        Clock frequency of XTAL in Hz.
+
+    xtal-capacitor-tune-value:
+      type: int
+      required: false
+      description: |
+        Clock crystal capacitor tune value.
+
+        This controls the capacitance of the internal capacitors for the
+        crystal oscillator. The range is from 0 to 0x7f inclusive and each LSB
+        step corresponds to ~70 fF change in capacitance. The ideal value must
+        be determined experimentally and it can be left blank if individual
+        calibration per device is used.
+
+    rx-rssi-offset:
+      type: int
+      required: false
+      description: |
+        RSSI offset in RX path due to analog front-end. Subtracted from RSSI
+        value as reported by the Si4467 transceiver to get corrected value.
