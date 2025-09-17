@@ -43,6 +43,21 @@
 	pinctrl-0 = <&spi2_default>;
 	pinctrl-names = "default";
 	status = "okay";
+
+	si4467@0 {
+		compatible = "silabs,si4467";
+		spi-max-frequency = <2000000>;
+		xtal-frequency = <26000000>;
+		rx-rssi-offset = <15>;
+		reg = <0>;
+		gpio-0-gpios = <&gpio2 4 GPIO_ACTIVE_HIGH>;
+		gpio-1-gpios = <&gpio2 5 GPIO_ACTIVE_HIGH>;
+		gpio-2-gpios = <&gpio2 6 GPIO_ACTIVE_HIGH>;
+		gpio-3-gpios = <&gpio2 7 GPIO_ACTIVE_HIGH>;
+
+		sdn-gpios    = <&gpio3 4 GPIO_ACTIVE_HIGH>;
+		nirq-gpios   = <&gpio3 5 GPIO_ACTIVE_LOW>;
+	};
 };
 
 &usart0 {
