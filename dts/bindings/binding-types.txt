@@ -104,6 +104,7 @@ reserved-memory	Reserved memory
 reset	Reset controller
 retained_mem	Retained memory
 retention	Retention
+rf-transceiver	RF transceiver
 riscv	RISC-V architecture
 rng	RNG (Random Number Generator)
 rtc	RTC (Real Time Clock)
