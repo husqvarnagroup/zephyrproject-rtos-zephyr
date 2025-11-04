@@ -103,8 +103,7 @@ static int cmd_erase(const struct shell *shell_ptr, size_t argc, char *argv[])
 
 	ret = factory_data_init();
 	if (ret) {
-		shell_error(shell_ptr, "Failed to initialize: %d", ret);
-		return -EIO;
+		shell_warn(shell_ptr, "Failed to initialize (%d), but continue with erasing", ret);
 	}
 
 	ret = factory_data_erase();
