@@ -45,6 +45,10 @@
 #define LOG_MODULE_NAME net_lwm2m_rd_client
 #define LOG_LEVEL CONFIG_LWM2M_LOG_LEVEL
 
+#if defined(CONFIG_NET_L2_LEMONBEAT_MGMT)
+#include "net/lb_radio.h"
+#endif
+
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(LOG_MODULE_NAME);
 
@@ -1780,6 +1784,11 @@ void lwm2m_rd_client_register(void)
 {
 	k_mutex_lock(&client.mutex, K_FOREVER);
 	if (!client.use_bootstrap && client.engine_state == ENGINE_IDLE && client.ctx != NULL) {
+#if defined(CONFIG_NET_L2_LEMONBEAT_MGMT)
+		if (!net_if_is_up((net_if_get_lemonbeat()))) {
+			net_if_up(net_if_get_lemonbeat());
+		}
+#endif
 		set_sm_state(ENGINE_DO_REGISTRATION);
 		next_event_at(0);
 	}
