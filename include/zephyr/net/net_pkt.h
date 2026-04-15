@@ -24,6 +24,9 @@
 #if defined(CONFIG_IEEE802154)
 #include <zephyr/net/ieee802154_pkt.h>
 #endif
+#if defined(CONFIG_LEMONBEAT_RADIO)
+#include <net/lb_net_pkt_cb.h>
+#endif
 #include <zephyr/net/net_core.h>
 #include <zephyr/net/net_linkaddr.h>
 #include <zephyr/net/net_ip.h>
@@ -327,6 +330,9 @@ struct net_pkt {
 		 */
 		struct net_pkt_cb_ieee802154 cb_ieee802154;
 #endif /* CONFIG_IEEE802154 */
+#if defined(CONFIG_LEMONBEAT_RADIO)
+		struct net_pkt_cb_lb cb_lb;
+#endif /* CONFIG_LEMONBEAT_RADIO */
 	} cb;
 #endif /* CONFIG_NET_PKT_CONTROL_BLOCK */
 
