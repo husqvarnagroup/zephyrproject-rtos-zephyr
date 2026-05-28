@@ -53,7 +53,6 @@ static int handle_ipv6_echo_reply(struct net_icmp_ctx *ctx,
 {
 	NET_PKT_DATA_ACCESS_CONTIGUOUS_DEFINE(icmp_access,
 					      struct net_icmpv6_echo_req);
-	struct net_ipv6_hdr *ip_hdr = hdr->ipv6;
 	struct net_icmpv6_echo_req *icmp_echo;
 	uint32_t cycles;
 	char time_buf[16] = { 0 };
@@ -78,27 +77,13 @@ static int handle_ipv6_echo_reply(struct net_icmp_ctx *ctx,
 			 "time=%.2f ms",
 			 (double)((uint32_t)k_cyc_to_ns_floor64(cycles) / 1000000.f)
 #else
-			 "time=%d ms",
+			 "%d ms",
 			 ((uint32_t)k_cyc_to_ns_floor64(cycles) / 1000000)
 #endif
 			);
 	}
 
-	PR_SHELL(ping_ctx.sh, "%d bytes from %s to %s: icmp_seq=%d ttl=%d "
-#ifdef CONFIG_IEEE802154
-		 "rssi=%d "
-#endif
-		 "%s\n",
-		 ntohs(ip_hdr->len) - net_pkt_ipv6_ext_len(pkt) -
-								NET_ICMPH_LEN,
-		 net_sprint_ipv6_addr(&ip_hdr->src),
-		 net_sprint_ipv6_addr(&ip_hdr->dst),
-		 ntohs(icmp_echo->sequence),
-		 ip_hdr->hop_limit,
-#ifdef CONFIG_IEEE802154
-		 net_pkt_ieee802154_rssi_dbm(pkt),
-#endif
-		 time_buf);
+	PR_SHELL(ping_ctx.sh, "#%d %s\n", ntohs(icmp_echo->sequence), time_buf);
 
 	if (ntohs(icmp_echo->sequence) == ping_ctx.count) {
 		ping_done(&ping_ctx);
