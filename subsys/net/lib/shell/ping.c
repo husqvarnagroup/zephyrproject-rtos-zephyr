@@ -14,6 +14,9 @@ LOG_MODULE_DECLARE(net_shell);
 #include <zephyr/net/icmp.h>
 #include <zephyr/net/net_linkaddr.h>
 
+#ifdef CONFIG_LEMONBEAT_RADIO
+#include "net/lb_net_pkt.h"
+#endif
 #include "net_shell_private.h"
 
 #include "../ip/icmpv6.h"
@@ -52,9 +55,8 @@ static struct ping_context {
 } ping_ctx;
 
 static void ping_done(struct ping_context *ctx);
-static int handle_echo_reply_common(struct net_pkt *pkt, uint16_t sequence,
-				    uint16_t bytes, const char *src, const char *dst,
-				    uint8_t ttl);
+static int handle_echo_reply_common(struct net_pkt *pkt, uint16_t sequence, uint16_t bytes,
+				    const char *src, const char *dst, uint8_t ttl);
 
 #ifdef CONFIG_FPU
 #define PING_PRI_MSEC             "%.2f"
@@ -195,6 +197,39 @@ static int handle_ipv4_echo_reply(struct net_icmp_ctx *ctx,
 
 #if defined(CONFIG_NET_IPV4) || defined(CONFIG_NET_IPV6)
 
+/** Get RSSI from net packet.
+ *
+ * @param pkt The packet containing the echo reply
+ * @param[out] rssi	Pointer to store the received signal strength indicator (RSSI) in dBm
+ * @retval 0 on success
+ * @retval <0 on failure
+ */
+static int rssi_dbm_get(struct net_pkt *pkt, int16_t *rssi)
+{
+	struct net_linkaddr *link_addr = net_if_get_link_addr(pkt->iface);
+
+	if (link_addr) {
+		switch (link_addr->type) {
+#ifdef CONFIG_IEEE802154
+		case NET_LINK_IEEE802154:
+			*rssi = net_pkt_ieee802154_rssi_dbm(pkt);
+			return 0;
+#endif
+		case NET_LINK_UNKNOWN:
+#ifdef CONFIG_NET_L2_LEMONBEAT
+			if (net_if_l2(pkt->iface) == &NET_L2_GET_NAME(LEMONBEAT)) {
+				*rssi = net_pkt_cb_lb_get_rx_rssi_dbm(pkt);
+				return 0;
+			}
+#endif
+			break;
+		default:
+			break;
+		}
+	}
+	return -ENOTSUP;
+}
+
 /**	Calculating the round-trip time and printing the result.
  *
  * @param pkt The packet containing the echo reply
@@ -226,17 +261,13 @@ static int handle_echo_reply_common(struct net_pkt *pkt, uint16_t sequence, uint
 	ping_ctx.stats.pkt_recv++;
 
 	if (!ping_ctx.quiet) {
-#ifdef CONFIG_IEEE802154
+		int16_t rssi_dbm;
 		char rssi_buf[16] = {0};
-		struct net_linkaddr *link_addr = net_if_get_link_addr(pkt->iface);
 
-		if (link_addr && link_addr->type == NET_LINK_IEEE802154) {
-			snprintf(rssi_buf, sizeof(rssi_buf), "rssi=%d ",
-				 net_pkt_ieee802154_rssi_dbm(pkt));
+		if (rssi_dbm_get(pkt, &rssi_dbm) == 0) {
+			snprintf(rssi_buf, sizeof(rssi_buf), "rssi=%d ", rssi_dbm);
 		}
-#else
-		const char rssi_buf[1] = {0};
-#endif
+
 		PR_SHELL(ping_ctx.sh, "%d bytes from %s to %s: icmp_seq=%u ttl=%u %s%s\n", bytes,
 			 src, dst, sequence, ttl, rssi_buf, time_buf);
 	}
